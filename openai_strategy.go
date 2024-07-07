@@ -1,31 +1,24 @@
-package llm
+package llmconnector
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/simp-lee/gohttpclient"
-	"time"
 )
-
-type OpenAIConfig struct {
-	APIKey   string
-	ChatURL  string
-	EmbedURL string
-}
 
 type OpenAIStrategy struct {
 	chatClient  *gohttpclient.Client
 	embedClient *gohttpclient.Client
-	config      OpenAIConfig
+	config      *Config
 }
 
-func NewOpenAIStrategy(config OpenAIConfig) (*OpenAIStrategy, error) {
+func NewOpenAIStrategy(config Config) (*OpenAIStrategy, error) {
 	if config.APIKey == "" {
 		return nil, fmt.Errorf("OpenAI API key is required")
 	}
 
-	// Set default base URLs if not set
+	// Set default values if not provided
 	if config.ChatURL == "" {
 		config.ChatURL = "https://api.openai.com/v1/chat/completions"
 	}
@@ -33,26 +26,27 @@ func NewOpenAIStrategy(config OpenAIConfig) (*OpenAIStrategy, error) {
 		config.EmbedURL = "https://api.openai.com/v1/engines/text-similarity/embeddings"
 	}
 
+	// Use default common config if not set
+	if config.CommonConfig == (CommonConfig{}) {
+		config.CommonConfig = DefaultCommonConfig()
+	}
+
 	// Prepare the chat client
-	chatClient := gohttpclient.NewClient(
-		gohttpclient.WithTimeout(30*time.Second),
-		gohttpclient.WithRetries(3),
-	)
-	chatClient.SetHeader("Authorization", fmt.Sprintf("Bearer %s", config.APIKey))
-	chatClient.SetHeader("Content-Type", "application/json")
+	chatClient, err := createClient(config.CommonConfig, config.APIKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create OpenAI chat client: %w", err)
+	}
 
 	// Prepare the embedding client
-	embedClient := gohttpclient.NewClient(
-		gohttpclient.WithTimeout(30*time.Second),
-		gohttpclient.WithRetries(3),
-	)
-	embedClient.SetHeader("Authorization", fmt.Sprintf("Bearer %s", config.APIKey))
-	embedClient.SetHeader("Content-Type", "application/json")
+	embedClient, err := createClient(config.CommonConfig, config.APIKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create OpenAI embedding client: %w", err)
+	}
 
 	return &OpenAIStrategy{
 		chatClient:  chatClient,
 		embedClient: embedClient,
-		config:      config,
+		config:      &config,
 	}, nil
 }
 

@@ -1,26 +1,19 @@
-package llm
+package llmconnector
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/simp-lee/gohttpclient"
-	"time"
 )
-
-type AlibabaConfig struct {
-	APIKey   string
-	ChatURL  string
-	EmbedURL string
-}
 
 type AlibabaStrategy struct {
 	chatClient  *gohttpclient.Client
 	embedClient *gohttpclient.Client
-	config      AlibabaConfig
+	config      *Config
 }
 
-func NewAlibabaStrategy(config AlibabaConfig) (*AlibabaStrategy, error) {
+func NewAlibabaStrategy(config Config) (*AlibabaStrategy, error) {
 	if config.APIKey == "" {
 		return nil, fmt.Errorf("Alibaba API key is required")
 	}
@@ -33,26 +26,27 @@ func NewAlibabaStrategy(config AlibabaConfig) (*AlibabaStrategy, error) {
 		config.EmbedURL = "https://dashscope.aliyuncs.com/api/v1/services/embeddings/text-embedding"
 	}
 
+	// Use default common config if not set
+	if config.CommonConfig == (CommonConfig{}) {
+		config.CommonConfig = DefaultCommonConfig()
+	}
+
 	// Prepare the chat client
-	chatClient := gohttpclient.NewClient(
-		gohttpclient.WithTimeout(30*time.Second),
-		gohttpclient.WithRetries(3),
-	)
-	chatClient.SetHeader("Authorization", fmt.Sprintf("Bearer %s", config.APIKey))
-	chatClient.SetHeader("Content-Type", "application/json")
+	chatClient, err := createClient(config.CommonConfig, config.APIKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Alibaba chat client: %w", err)
+	}
 
 	// Prepare the embedding client
-	embedClient := gohttpclient.NewClient(
-		gohttpclient.WithTimeout(30*time.Second),
-		gohttpclient.WithRetries(3),
-	)
-	embedClient.SetHeader("Authorization", fmt.Sprintf("Bearer %s", config.APIKey))
-	embedClient.SetHeader("Content-Type", "application/json")
+	embedClient, err := createClient(config.CommonConfig, config.APIKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Alibaba embedding client: %w", err)
+	}
 
 	return &AlibabaStrategy{
 		chatClient:  chatClient,
 		embedClient: embedClient,
-		config:      config,
+		config:      &config,
 	}, nil
 }
 

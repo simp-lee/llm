@@ -1,4 +1,4 @@
-package llm
+package llmconnector
 
 type ChatOption func(option *ChatOptions)
 type EmbedOption func(options *EmbedOptions)

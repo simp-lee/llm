@@ -1,4 +1,4 @@
-package llm
+package llmconnector
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestNewAlibabaStrategy(t *testing.T) {
-	config := AlibabaConfig{
+	config := Config{
 		APIKey: "test-api-key",
 	}
 
@@ -37,7 +37,7 @@ func TestAlibabaStrategy_Chat(t *testing.T) {
 	}))
 	defer server.Close()
 
-	config := AlibabaConfig{
+	config := Config{
 		APIKey:  "test-api-key",
 		ChatURL: server.URL,
 	}
@@ -79,7 +79,7 @@ func TestAlibabaStrategy_Embed(t *testing.T) {
 	}))
 	defer server.Close()
 
-	config := AlibabaConfig{
+	config := Config{
 		APIKey:   "test-api-key",
 		EmbedURL: server.URL,
 	}

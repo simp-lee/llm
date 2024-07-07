@@ -1,4 +1,4 @@
-package llm
+package llmconnector
 
 type ChatMessage struct {
 	Role    string `json:"role"`

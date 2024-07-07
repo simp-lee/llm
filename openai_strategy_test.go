@@ -1,4 +1,4 @@
-package llm
+package llmconnector
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestNewOpenAIStrategy(t *testing.T) {
-	config := OpenAIConfig{
+	config := Config{
 		APIKey: "test-api-key",
 	}
 
@@ -37,7 +37,7 @@ func TestOpenAIStrategy_Chat(t *testing.T) {
 	}))
 	defer server.Close()
 
-	config := OpenAIConfig{
+	config := Config{
 		APIKey:  "test-api-key",
 		ChatURL: server.URL,
 	}
@@ -79,7 +79,7 @@ func TestOpenAIStrategy_Embed(t *testing.T) {
 	}))
 	defer server.Close()
 
-	config := OpenAIConfig{
+	config := Config{
 		APIKey:   "test-api-key",
 		EmbedURL: server.URL,
 	}
