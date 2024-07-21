@@ -1,4 +1,4 @@
-module github.com/simp-lee/llm
+module github.com/simp-lee/llmconnector
 
 go 1.22.0
 
